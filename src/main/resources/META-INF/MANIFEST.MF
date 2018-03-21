@@ -1,3 +1,4 @@
 Manifest-Version: 1.0
+Class-Path: localnet_rest
 Main-Class: net.elyland.localnet.SpringBootMvcApplication
 

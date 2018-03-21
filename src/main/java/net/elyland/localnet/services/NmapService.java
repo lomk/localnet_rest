@@ -54,11 +54,11 @@ public class NmapService {
                 try {
                     String hostname = host.getHostnames().getHostname().getName();
                     String ip = host.getAddresses().get(0).getAddr();
-//                    String mac = host.getAddresses().get(1).getAddrtype();
+                    String mac = host.getAddresses().get(1).getAddrtype();
                     if (hostname.contains("mylands.local") || hostname.contains("MYLANDS.LOCAL")) {
                         nh.setHostname(host.getHostnames().getHostname().getName());
                         nh.setIpAddress(ip);
-//                        nh.setMacAddress(mac);
+                        nh.setMacAddress(mac);
                         nh.setIsUp(true);
                         newHosts.add(nh);
                     }
