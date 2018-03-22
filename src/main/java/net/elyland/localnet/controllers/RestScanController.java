@@ -48,7 +48,7 @@ public class RestScanController {
     public ResponseEntity<?> wake(@PathVariable("id") Integer id) {
         NetHost host = netHostRepository.findOne(id);
 
-        if (nmapService.wake(host.getIpAddress())) {
+        if (nmapService.wake(host.getMacAddress())) {
             return new ResponseEntity<String>("sent", HttpStatus.OK);
         } else {
             return new ResponseEntity(new CustomErrorType(

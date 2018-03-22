@@ -28,7 +28,7 @@ public class NmapService {
     @Autowired
     NetHostRepository netHostRepository;
 
-    @Async
+//    @Async
     @Scheduled(cron="2 * * * * *")
     public void runNmap(){
 
@@ -36,13 +36,16 @@ public class NmapService {
         String network = "192.168.0.0/24";
         Nmap4j nmap4j= new Nmap4j("/usr");
         nmap4j.includeHosts( network ) ;
+        nmap4j.addFlags("-e eth1");
         nmap4j.addFlags("-sP");
         nmap4j.addFlags("-oX -");
+        nmap4j.addFlags("--privileged");
 
         try {
             nmap4j.execute();
 
             String nmapRun = nmap4j.getOutput();
+//            System.out.println(nmapRun);
             OnePassParser opp = new OnePassParser();
             NMapRun nmapRun1 = opp.parse(nmapRun, OnePassParser.STRING_INPUT);
             ArrayList<Host> hosts = nmapRun1.getHosts();
@@ -51,19 +54,54 @@ public class NmapService {
 //            System.out.println(hosts.size());
             for (Host host : hosts) {
                 NetHost nh = new NetHost();
+
+//                    System.out.println(host.getAddresses().get(0).toString());
+//                    System.out.println(host.getAddresses().get(0).getAddrtype());
+//                    System.out.println(host.getAddresses().get(0).getVendor());
+//                    System.out.println(host.getAddresses().toString());
+                String hostname = null;
+                String ip = null;
+                String mac = null;
+//                String os = null;
+
                 try {
-                    String hostname = host.getHostnames().getHostname().getName();
-                    String ip = host.getAddresses().get(0).getAddr();
-                    String mac = host.getAddresses().get(1).getAddrtype();
-                    if (hostname.contains("mylands.local") || hostname.contains("MYLANDS.LOCAL")) {
-                        nh.setHostname(host.getHostnames().getHostname().getName());
+                    hostname = host.getHostnames().getHostname().getName();
+//                    System.out.println(hostname);
+                } catch (Exception e ){
+//                    hostname = "noname";
+//                    e.printStackTrace();
+                }
+                try {
+                    ip = host.getAddresses().get(0).getAddr();
+//                    System.out.println(ip);
+                } catch (Exception e ){
+                    e.printStackTrace();
+                }
+                try {
+                    mac = host.getAddresses().get(1).getAddr();
+//                    System.out.println(mac);
+                } catch (Exception e ){
+                    e.printStackTrace();
+                }
+//                try {
+//                    os = host.getOs().toString();
+//                } catch (Exception e ){
+//                    e.printStackTrace();
+//                }
+                try {
+                    if (hostname != null) {
+                        nh.setHostname(hostname);
+                    } else {
+                        nh.setHostname("noname");
+                    }
                         nh.setIpAddress(ip);
                         nh.setMacAddress(mac);
                         nh.setIsUp(true);
+//                        nh.setOs(os);
                         newHosts.add(nh);
-                    }
+
                 } catch (Exception e) {
-//                    e.printStackTrace();
+                    e.printStackTrace();
                 }
             }
             List<NetHost> netHosts = netHostRepository.findAll();
@@ -76,7 +114,7 @@ public class NmapService {
                     if (netHosts.stream().anyMatch(h -> h.getHostname().equalsIgnoreCase(newhost.getHostname()))) {
                         for (NetHost netHost : netHosts) {
                             try {
-                                if (newhost.getHostname().equals(netHost)) {
+                                if (newhost.getHostname().equals(netHost.getHostname()) && newhost.getHostname() != "noname") {
                                     boolean isUpdated = false;
                                     if (!newhost.getIpAddress().equals(netHost.getIpAddress())) {
                                         netHost.setIpAddress(newhost.getIpAddress());
@@ -99,11 +137,11 @@ public class NmapService {
                                     break;
                                 }
                             } catch (NullPointerException e){
-//                            e.printStackTrace();
+                            e.printStackTrace();
                             }
                         }
                     } else {
-                        netHostsToUpdate.add(newhost);
+                        netHostsToInsert.add(newhost);
                     }
                 }
 
@@ -185,18 +223,20 @@ public class NmapService {
         Process p;
         String command = String.format("etherwake -i eth1 %s", mac);
         Boolean result = false;
+        System.out.println(command);
         try {
             p = Runtime.getRuntime().exec(command);
             BufferedReader inputStream = new BufferedReader(new InputStreamReader(p.getInputStream()));
 
             String s;
             while ((s = inputStream.readLine()) != null) {
+                System.out.println(s);
                 if (s.isEmpty()) {
                     result = true;
                 }
             }
         } catch (IOException e) {
-//            e.printStackTrace();
+            e.printStackTrace();
         }
         return result;
     }
