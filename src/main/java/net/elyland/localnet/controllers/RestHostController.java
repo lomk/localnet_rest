@@ -46,11 +46,36 @@ public class RestHostController {
                     "Unable to upate. NetHost with id " + id + " not found."),
                     HttpStatus.NOT_FOUND);
         }
-        currentHost.setHostname(host.getHostname());
+        try {
+            currentHost.setHostname(host.getHostname());
+        } catch (Exception e){
+            e.printStackTrace();
+        }
+        try {
         currentHost.setIpAddress(host.getIpAddress());
+        } catch (Exception e){
+            e.printStackTrace();
+        }
+        try {
         currentHost.setMacAddress(host.getMacAddress());
+        } catch (Exception e){
+            e.printStackTrace();
+        }
+        try {
+        currentHost.setCustomName(host.getCustomName());
+        } catch (Exception e){
+            e.printStackTrace();
+        }
+        try {
         currentHost.setOs(host.getOs());
+        } catch (Exception e){
+            e.printStackTrace();
+        }
+        try {
         currentHost.setPorts(host.getPorts());
+        } catch (Exception e){
+            e.printStackTrace();
+        }
 
         hostRepository.save(currentHost);
         return new ResponseEntity<NetHost>(currentHost, HttpStatus.OK);

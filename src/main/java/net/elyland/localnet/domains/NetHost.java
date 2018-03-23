@@ -5,8 +5,9 @@ import lombok.Setter;
 
 import javax.persistence.*;
 import java.io.Serializable;
+import java.util.Date;
 import java.util.Set;
-import java.util.function.BooleanSupplier;
+
 
 /**
  * Created by imaterynko on 17.01.17.
@@ -35,10 +36,20 @@ public class NetHost implements Serializable {
     @Column(name = "os")
     private String os;
 
+    @Column(name = "os")
+    private String customName;
+
     @Column(name = "is_up")
     private Boolean isUp;
+
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date scanTime;
 
     @OneToMany(mappedBy = "host", targetEntity = Port.class)
     @OrderBy("port_number")
     public Set<Port> ports;
+
+    @ManyToOne
+    @JoinColumn(name = "place_id")
+    private Place place;
 }

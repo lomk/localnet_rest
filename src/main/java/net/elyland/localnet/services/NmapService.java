@@ -18,6 +18,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -109,39 +110,47 @@ public class NmapService {
             List<NetHost> netHostsToInsert = new ArrayList<>();
             List<NetHost> netHostsToUpdate = new ArrayList<>();
 
-            if (!netHosts.isEmpty()) {
+
+            if (!netHosts.isEmpty() && !newHosts.isEmpty()) {
                 for (NetHost newhost : newHosts) {
-                    if (netHosts.stream().anyMatch(h -> h.getHostname().equalsIgnoreCase(newhost.getHostname()))) {
+                    if (netHosts.stream().anyMatch(h -> h.getIpAddress().equalsIgnoreCase(newhost.getIpAddress()))) {
                         for (NetHost netHost : netHosts) {
                             try {
-                                if (newhost.getHostname().equals(netHost.getHostname()) && newhost.getHostname() != "noname") {
-                                    boolean isUpdated = false;
-                                    if (!newhost.getIpAddress().equals(netHost.getIpAddress())) {
-                                        netHost.setIpAddress(newhost.getIpAddress());
+                                if (newhost.getIpAddress().equals(netHost.getIpAddress())) {
+
+                                    if (!newhost.getHostname().equals(netHost.getHostname())) {
+                                        netHost.setHostname(newhost.getHostname());
 //                                        netHostsToUpdate.add(netHost);
-                                        isUpdated = true;
                                     }
                                     if (!newhost.getMacAddress().equals(netHost.getMacAddress())) {
                                       netHost.setMacAddress(newhost.getMacAddress());
 //                                        netHostsToUpdate.add(netHost);
-                                        isUpdated = true;
                                     }
                                     if (!newhost.getIsUp().equals(netHost.getIsUp())) {
                                         netHost.setIsUp(newhost.getIsUp());
 //                                        netHostsToUpdate.add(netHost);
-                                        isUpdated = true;
                                     }
-                                    if (isUpdated) {
-                                        netHostsToUpdate.add(netHost);
-                                    }
+
+                                    netHost.setScanTime(new Date());
+                                    netHostsToUpdate.add(netHost);
                                     break;
                                 }
                             } catch (NullPointerException e){
-                            e.printStackTrace();
+                                e.printStackTrace();
                             }
                         }
                     } else {
+                        newhost.setScanTime(new Date());
                         netHostsToInsert.add(newhost);
+                    }
+                }
+
+                for (NetHost netHost : netHosts){
+                    if (newHosts.stream().noneMatch(h -> h.getIpAddress().equalsIgnoreCase(netHost.getIpAddress()))) {
+                        if (!pingHost(netHost.getIpAddress())) {
+                            netHost.setIsUp(false);
+                            netHostsToUpdate.add(netHost);
+                        }
                     }
                 }
 
@@ -157,6 +166,9 @@ public class NmapService {
                 }
             } else {
                 if (!newHosts.isEmpty()){
+                    for (NetHost host  : newHosts){
+                        host.setScanTime(new Date());
+                    }
                     netHostRepository.save(newHosts);
                 }
             }
@@ -166,6 +178,18 @@ public class NmapService {
                 e.printStackTrace();
         } catch(Exception e){
                 e.printStackTrace();
+        }
+    }
+
+//    @Scheduled(cron="2 * * * * *")
+    public  void pingAll(){
+        List<NetHost> netHosts = netHostRepository.findAll();
+        for (NetHost host : netHosts){
+            Boolean status = pingHost(host.getIpAddress());
+            if (!status == host.getIsUp()){
+                host.setIsUp(status);
+                netHostRepository.save(host);
+            }
         }
     }
 
@@ -201,7 +225,7 @@ public class NmapService {
     public static Boolean pingHost(String ip){
 
         Process p;
-        String command = String.format("fping %s", ip);
+        String command = String.format("fping -I eth1 %s", ip);
         Boolean result = false;
         try {
             p = Runtime.getRuntime().exec(command);

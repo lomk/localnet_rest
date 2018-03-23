@@ -60,14 +60,12 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                 .csrf().disable()
                 .cors().and()
                 .authorizeRequests()
-//                .antMatchers("/api/admin/**").access("hasAuthority('ADMIN')")
+                .antMatchers("/api/admin/**").access("hasAuthority('ADMIN')")
 //                .antMatchers("/api/tester/**").access("hasAuthority('TESTER')")
                 .antMatchers(
                         "/**",
-                        "/api**",
                         "/logon/**",
-                        "/login",
-                        "/admin/**")
+                        "/login")
                 .permitAll()
                 .and()
                 .authorizeRequests()
