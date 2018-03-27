@@ -3,6 +3,7 @@ package net.elyland.localnet.services;
 
 import net.elyland.localnet.domains.Role;
 import net.elyland.localnet.domains.User;
+
 import net.elyland.localnet.repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.GrantedAuthority;

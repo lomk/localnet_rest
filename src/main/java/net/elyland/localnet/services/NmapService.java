@@ -30,7 +30,7 @@ public class NmapService {
     NetHostRepository netHostRepository;
 
 //    @Async
-    @Scheduled(cron="2 * * * * *")
+    @Scheduled(cron="5 * * * * *")
     public void runNmap(){
 
 //        System.out.println("STARTING NEW SCAN");
@@ -181,11 +181,16 @@ public class NmapService {
         }
     }
 
-//    @Scheduled(cron="2 * * * * *")
+    @Scheduled(cron="1 * * * * *")
     public  void pingAll(){
         List<NetHost> netHosts = netHostRepository.findAll();
         for (NetHost host : netHosts){
-            Boolean status = pingHost(host.getIpAddress());
+            Boolean status = host.getIsUp();
+            try {
+                status = pingHost(host.getIpAddress());
+            } catch (Exception e){
+                e.printStackTrace();
+            }
             if (!status == host.getIsUp()){
                 host.setIsUp(status);
                 netHostRepository.save(host);
