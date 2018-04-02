@@ -86,6 +86,13 @@ public class RestUserController {
                     "User with id " + id + " not found."),
                     HttpStatus.NOT_FOUND);
         }
+
+        if (user.getUsername() == "admin" || user.getUsername() == "Admin" || user.getUsername() == "ADMIN" ){
+            return new ResponseEntity(new CustomErrorType(
+                    "Cant delete default admin user"),
+                    HttpStatus.NOT_FOUND);
+        }
+
         try {
             userService.deleteUser(user.getId());
         } catch (Exception e){

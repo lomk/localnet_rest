@@ -38,7 +38,7 @@ public class RestHostController {
         return new ResponseEntity<NetHost>(host, HttpStatus.OK);
     }
 
-    @RequestMapping(value = "{id}", method = RequestMethod.PUT)
+    @RequestMapping(value = "update/{id}", method = RequestMethod.POST)
     public ResponseEntity<?> updateHost(@PathVariable Integer id, @RequestBody NetHost host){
         NetHost currentHost = hostRepository.findOne(id);
         if (currentHost == null){
@@ -71,6 +71,12 @@ public class RestHostController {
         } catch (Exception e){
             e.printStackTrace();
         }
+        try {
+            currentHost.setPlace(host.getPlace());
+        } catch (Exception e){
+            e.printStackTrace();
+        }
+
         try {
         currentHost.setPorts(host.getPorts());
         } catch (Exception e){
@@ -106,7 +112,7 @@ public class RestHostController {
         return new ResponseEntity<NetHost>(host, HttpStatus.CREATED);
     }
 
-    @RequestMapping(value = "{id}", method = RequestMethod.DELETE)
+    @RequestMapping(value = "/delete/{id}", method = RequestMethod.DELETE)
     public ResponseEntity<?> delHost(@PathVariable("id") Integer id) {
         NetHost host = hostRepository.findOne(id);
         if (host == null ){

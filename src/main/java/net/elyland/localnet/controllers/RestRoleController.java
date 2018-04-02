@@ -78,6 +78,13 @@ public class RestRoleController {
                     "Role with id " + id + " not found."),
                     HttpStatus.NOT_FOUND);
         }
+
+        if (role.getName() == "admin" || role.getName() == "Admin" || role.getName() == "ADMIN"){
+            return new ResponseEntity(new CustomErrorType(
+                    "Cant delete default admin role"),
+                    HttpStatus.NOT_FOUND);
+        }
+
         try {
             roleRepository.delete(role);
         } catch (Exception e){

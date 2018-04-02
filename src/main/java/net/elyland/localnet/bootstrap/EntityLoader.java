@@ -24,20 +24,18 @@ public class EntityLoader implements ApplicationListener<ContextRefreshedEvent> 
     @Autowired
     NetHostRepository netHostRepository;
 
-
-
     @Override
     public void onApplicationEvent(ContextRefreshedEvent contextRefreshedEvent) {
-        Role role = new Role();
-        role.setName("ADMIN");
-        roleRepository.save(role);
-
-
-        User user = new User();
-        user.setUsername("admin");
-        user.setPassword("admin123456");
-        user.setRole(roleRepository.findByName("ADMIN"));
-        userService.save(user);
+//        Role role = new Role();
+//        role.setName("ADMIN");
+//        roleRepository.save(role);
+//
+//
+//        User user = new User();
+//        user.setUsername("admin");
+//        user.setPassword("Mlgame.ru");
+//        user.setRole(roleRepository.findByName("ADMIN"));
+//        userService.save(user);
 
 //        NetHost netHost = new NetHost();
 //        netHost.setMacAddress("er:er:er:er:er");

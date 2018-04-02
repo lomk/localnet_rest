@@ -13,7 +13,7 @@ import java.util.Set;
  * Created by imaterynko on 17.01.17.
  */
 @Entity
-@Table(schema = "localnet", name = "server")
+@Table(schema = "localnet", name = "host")
 @Getter
 @Setter
 public class NetHost implements Serializable {
@@ -36,7 +36,7 @@ public class NetHost implements Serializable {
     @Column(name = "os")
     private String os;
 
-    @Column(name = "os")
+    @Column(name = "custom_name")
     private String customName;
 
     @Column(name = "is_up")

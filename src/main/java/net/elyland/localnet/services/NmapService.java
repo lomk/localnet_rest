@@ -33,7 +33,6 @@ public class NmapService {
     @Scheduled(cron="5 * * * * *")
     public void runNmap(){
 
-//        System.out.println("STARTING NEW SCAN");
         String network = "192.168.0.0/24";
         Nmap4j nmap4j= new Nmap4j("/usr");
         nmap4j.includeHosts( network ) ;
@@ -46,41 +45,30 @@ public class NmapService {
             nmap4j.execute();
 
             String nmapRun = nmap4j.getOutput();
-//            System.out.println(nmapRun);
             OnePassParser opp = new OnePassParser();
             NMapRun nmapRun1 = opp.parse(nmapRun, OnePassParser.STRING_INPUT);
             ArrayList<Host> hosts = nmapRun1.getHosts();
             List<NetHost> newHosts = new ArrayList<>();
-//            System.out.println("START NMAP");
-//            System.out.println(hosts.size());
+
             for (Host host : hosts) {
                 NetHost nh = new NetHost();
 
-//                    System.out.println(host.getAddresses().get(0).toString());
-//                    System.out.println(host.getAddresses().get(0).getAddrtype());
-//                    System.out.println(host.getAddresses().get(0).getVendor());
-//                    System.out.println(host.getAddresses().toString());
                 String hostname = null;
                 String ip = null;
                 String mac = null;
-//                String os = null;
 
                 try {
                     hostname = host.getHostnames().getHostname().getName();
-//                    System.out.println(hostname);
                 } catch (Exception e ){
-//                    hostname = "noname";
 //                    e.printStackTrace();
                 }
                 try {
                     ip = host.getAddresses().get(0).getAddr();
-//                    System.out.println(ip);
                 } catch (Exception e ){
                     e.printStackTrace();
                 }
                 try {
                     mac = host.getAddresses().get(1).getAddr();
-//                    System.out.println(mac);
                 } catch (Exception e ){
                     e.printStackTrace();
                 }
@@ -116,19 +104,16 @@ public class NmapService {
                     if (netHosts.stream().anyMatch(h -> h.getIpAddress().equalsIgnoreCase(newhost.getIpAddress()))) {
                         for (NetHost netHost : netHosts) {
                             try {
-                                if (newhost.getIpAddress().equals(netHost.getIpAddress())) {
+                                if (newhost.getMacAddress().equals(netHost.getMacAddress())) {
 
                                     if (!newhost.getHostname().equals(netHost.getHostname())) {
                                         netHost.setHostname(newhost.getHostname());
-//                                        netHostsToUpdate.add(netHost);
                                     }
-                                    if (!newhost.getMacAddress().equals(netHost.getMacAddress())) {
+                                    if (!newhost.getIpAddress().equals(netHost.getIpAddress())) {
                                       netHost.setMacAddress(newhost.getMacAddress());
-//                                        netHostsToUpdate.add(netHost);
                                     }
                                     if (!newhost.getIsUp().equals(netHost.getIsUp())) {
                                         netHost.setIsUp(newhost.getIsUp());
-//                                        netHostsToUpdate.add(netHost);
                                     }
 
                                     netHost.setScanTime(new Date());
@@ -183,20 +168,47 @@ public class NmapService {
 
     @Scheduled(cron="1 * * * * *")
     public  void pingAll(){
-        List<NetHost> netHosts = netHostRepository.findAll();
-        for (NetHost host : netHosts){
-            Boolean status = host.getIsUp();
-            try {
-                status = pingHost(host.getIpAddress());
-            } catch (Exception e){
-                e.printStackTrace();
-            }
-            if (!status == host.getIsUp()){
-                host.setIsUp(status);
-                netHostRepository.save(host);
+        List<NetHost> netHosts = null;
+        try {
+            netHosts = netHostRepository.findAll();
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        if (netHosts.isEmpty()) {
+            for (NetHost host : netHosts) {
+                Boolean status = host.getIsUp();
+                host.setScanTime(new Date());
+                try {
+                    status = pingHost(host.getIpAddress());
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                if (!status == host.getIsUp()) {
+                    host.setIsUp(status);
+                }
+                try {
+                    netHostRepository.save(host);
+                } catch (Exception e){
+                    e.printStackTrace();
+                }
             }
         }
     }
+
+//    @Scheduled(cron="0 1 * * * *")
+//    public void cleanAll(){
+//        try {
+//            List<NetHost> netHosts = netHostRepository.findAll();
+//            for (NetHost host : netHosts){
+//                Date oldDate = new Date(System.currentTimeMillis() - 14L * 24 * 3600 * 1000);
+//                if (host.getScanTime().before(oldDate)){
+//                    netHostRepository.delete(host);
+//                }
+//            }
+//        } catch (Exception e){
+//            e.printStackTrace();
+//        }
+//    }
 
     public static List<String> findHosts(String network){
 
@@ -222,7 +234,7 @@ public class NmapService {
                 }
             }
         } catch (IOException e) {
-//            e.printStackTrace();
+            e.printStackTrace();
         }
         return statusList;
     }
@@ -243,7 +255,7 @@ public class NmapService {
                 }
             }
         } catch (IOException e) {
-//            e.printStackTrace();
+            e.printStackTrace();
         }
         return result;
     }
@@ -307,7 +319,7 @@ public class NmapService {
                 }
             }
         } catch (IOException e) {
-//            e.printStackTrace();
+            e.printStackTrace();
         }
         return ports;
     }

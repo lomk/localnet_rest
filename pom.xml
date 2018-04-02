@@ -11,14 +11,6 @@
 
     <build>
         <plugins>
-            <!--<plugin>-->
-                <!--<groupId>org.apache.maven.plugins</groupId>-->
-                <!--<artifactId>maven-compiler-plugin</artifactId>-->
-                <!--<configuration>-->
-                    <!--<source>1.8</source>-->
-                    <!--<target>1.8</target>-->
-                <!--</configuration>-->
-            <!--</plugin>-->
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
@@ -44,17 +36,8 @@
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
         <version>1.5.1.RELEASE</version>
-        <relativePath/> <!-- lookup parent from repository -->
+        <relativePath/>
     </parent>
-
-    <!--<repositories>-->
-        <!--<repository>-->
-            <!--<id>local-repo</id>-->
-            <!--<name>LocalRepository</name>-->
-            <!--<url>file://${project.basedir}/libs</url>-->
-        <!--</repository>-->
-
-    <!--</repositories>-->
 
     <dependencies>
     <dependency>
@@ -102,7 +85,6 @@
         <groupId>org.projectlombok</groupId>
         <artifactId>lombok</artifactId>
         <version>1.16.12</version>
-        <!--<scope>provided</scope>-->
     </dependency>
 
         <dependency>

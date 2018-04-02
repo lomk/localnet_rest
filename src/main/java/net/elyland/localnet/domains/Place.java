@@ -16,9 +16,6 @@ public class Place {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @Column(name = "port_number")
-    private Integer portNumber;
-
     @Column(name = "name")
     private String name;
 }
