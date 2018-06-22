@@ -30,7 +30,8 @@ public class NmapService {
     NetHostRepository netHostRepository;
 
 //    @Async
-    @Scheduled(cron="5 * * * * *")
+    @Scheduled(cron="10 * * * * *")
+//    @Scheduled(fixedDelay=5000)
     public void runNmap(){
 
         String network = "192.168.0.0/24";
@@ -60,7 +61,7 @@ public class NmapService {
                 try {
                     hostname = host.getHostnames().getHostname().getName();
                 } catch (Exception e ){
-//                    e.printStackTrace();
+                    e.printStackTrace();
                 }
                 try {
                     ip = host.getAddresses().get(0).getAddr();
@@ -94,17 +95,17 @@ public class NmapService {
                 }
             }
             List<NetHost> netHosts = netHostRepository.findAll();
-            List<NetHost> netHostsToDelete = new ArrayList<>();
+//            List<NetHost> netHostsToDelete = new ArrayList<>();
             List<NetHost> netHostsToInsert = new ArrayList<>();
             List<NetHost> netHostsToUpdate = new ArrayList<>();
 
 
             if (!netHosts.isEmpty() && !newHosts.isEmpty()) {
                 for (NetHost newhost : newHosts) {
-                    if (netHosts.stream().anyMatch(h -> h.getIpAddress().equalsIgnoreCase(newhost.getIpAddress()))) {
+                    if (netHosts.stream().anyMatch(h -> h.getMacAddress().equalsIgnoreCase(newhost.getMacAddress()))) {
                         for (NetHost netHost : netHosts) {
                             try {
-                                if (newhost.getMacAddress().equals(netHost.getMacAddress())) {
+                                if (newhost.getIpAddress().equals(netHost.getIpAddress())) {
 
                                     if (!newhost.getHostname().equals(netHost.getHostname())) {
                                         netHost.setHostname(newhost.getHostname());
@@ -130,28 +131,49 @@ public class NmapService {
                     }
                 }
 
-                for (NetHost netHost : netHosts){
+/*                for (NetHost netHost : netHosts){
                     if (newHosts.stream().noneMatch(h -> h.getIpAddress().equalsIgnoreCase(netHost.getIpAddress()))) {
                         if (!pingHost(netHost.getIpAddress())) {
                             netHost.setIsUp(false);
                             netHostsToUpdate.add(netHost);
                         }
                     }
-                }
+                }*/
 
 
                 if (!netHostsToInsert.isEmpty()) {
                     netHostRepository.save(netHostsToInsert);
                 }
                 if (!netHostsToUpdate.isEmpty()) {
-                    netHostRepository.save(netHostsToUpdate);
+                    for (NetHost host: netHostsToUpdate){
+                        try {
+                        NetHost oldHost = netHostRepository.findOne(host.getId());
+
+                        if (!host.getHostname().equals(oldHost.getHostname())) {
+                            if (!host.getHostname().equals("noname"))
+                                oldHost.setHostname(host.getHostname());
+                        }
+                        if (!host.getIpAddress().equals(oldHost.getIpAddress())) {
+                            oldHost.setMacAddress(host.getMacAddress());
+                        }
+                        if (!host.getIsUp().equals(oldHost.getIsUp())) {
+                            oldHost.setIsUp(host.getIsUp());
+                        }
+                        netHostRepository.save(oldHost);
+                        } catch(Exception e){
+
+                            e.printStackTrace();
+                        }
+                    }
+//                    netHostRepository.save(netHostsToUpdate);
                 }
-                if (!netHostsToDelete.isEmpty()) {
-                    netHostRepository.delete(netHostsToDelete);
-                }
+//                if (!netHostsToDelete.isEmpty()) {
+//                    netHostRepository.delete(netHostsToDelete);
+//                }
             } else {
                 if (!newHosts.isEmpty()){
                     for (NetHost host  : newHosts){
+
                         host.setScanTime(new Date());
                     }
                     netHostRepository.save(newHosts);
@@ -166,34 +188,7 @@ public class NmapService {
         }
     }
 
-    @Scheduled(cron="1 * * * * *")
-    public  void pingAll(){
-        List<NetHost> netHosts = null;
-        try {
-            netHosts = netHostRepository.findAll();
-        }catch (Exception e){
-            e.printStackTrace();
-        }
-        if (netHosts.isEmpty()) {
-            for (NetHost host : netHosts) {
-                Boolean status = host.getIsUp();
-                host.setScanTime(new Date());
-                try {
-                    status = pingHost(host.getIpAddress());
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-                if (!status == host.getIsUp()) {
-                    host.setIsUp(status);
-                }
-                try {
-                    netHostRepository.save(host);
-                } catch (Exception e){
-                    e.printStackTrace();
-                }
-            }
-        }
-    }
+
 
 //    @Scheduled(cron="0 1 * * * *")
 //    public void cleanAll(){
@@ -210,36 +205,9 @@ public class NmapService {
 //        }
 //    }
 
-    public static List<String> findHosts(String network){
 
-        Process p = null;
-        List<String> statusList = new ArrayList<>();
-        String command = String.format("fping -g %s", network);
 
-        try {
-            p = Runtime.getRuntime().exec(command);
-            InputStream input = p.getInputStream();
-            BufferedReader inputStream = new BufferedReader(new InputStreamReader(input));
-
-            String s = "";
-            while ((s = inputStream.readLine()) != null) {
-                if (s.contains("alive")) {
-                    String IPADDRESS_PATTERN = "(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)";
-
-                    Pattern pattern = Pattern.compile(IPADDRESS_PATTERN);
-                    Matcher matcher = pattern.matcher(s);
-                    if (matcher.find()) {
-                        statusList.add(matcher.group());
-                    }
-                }
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return statusList;
-    }
-
-    public static Boolean pingHost(String ip){
+    /*public static Boolean pingHost(String ip){
 
         Process p;
         String command = String.format("fping -I eth1 %s", ip);
@@ -258,9 +226,9 @@ public class NmapService {
             e.printStackTrace();
         }
         return result;
-    }
+    }*/
 
-    public static Boolean wake(String mac){
+    /*public static Boolean wake(String mac){
         Process p;
         String command = String.format("etherwake -i eth1 %s", mac);
         Boolean result = false;
@@ -280,7 +248,7 @@ public class NmapService {
             e.printStackTrace();
         }
         return result;
-    }
+    }*/
 
 
     /*public static String getHostName(InetAddress addr) {

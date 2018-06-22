@@ -30,7 +30,7 @@ public class NetHost implements Serializable {
     @Column(name = "ip_address", length = 16)
     private String ipAddress;
 
-    @Column(name = "mac_address", length = 30)
+    @Column(name = "mac_address", length = 30, unique = true)
     private String macAddress;
 
     @Column(name = "os")
